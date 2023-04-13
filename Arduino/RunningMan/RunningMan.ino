@@ -16,11 +16,11 @@
 #include "InputController.h"
 
 #ifndef SSD1306_I2C
-  #define CLK	13
-  #define MOSI	11
-  #define CS	6
-  #define DC	4
-  #define RST	12
+  #define CLK	SCL
+  #define MOSI	SDA
+  #define CS	10
+  #define DC	7
+  #define RST	8
   Adafruit_SSD1306 display(MOSI, CLK, DC, RST, CS);
 #else
   #define OLED_RESET 8
@@ -69,7 +69,7 @@ bool up, down, left, right, aBut, bBut;
 int prevMenu = MENU_MAX;
 int currentMenu = 0;
 
-PROGMEM const char* stringTable[] = {
+const char* stringTable[] = {
   "Start game",
   "Credit"
 };
@@ -199,7 +199,7 @@ void setup() {
 	
 	stopUntilUserInput();    // Wait until user touch the button
 
-	setMenuMode();  // Menu mode
+	setGameMode();  // Menu mode
 }
 
 
@@ -296,7 +296,7 @@ void loop() {
 			stopUntilUserInput();    // Wait until user touch the button
 			gameState = STATUS_MENU;  // Then start the game paused
 			gameScore = 0;  // Reset score to 0
-			setMenuMode();
+			setGameMode();
 		}
 		else if (gameState == STATUS_CREDIT) {  // Draw credit screen
 			// Draw credit screen
@@ -497,15 +497,15 @@ void draw() {
 		if(charAniIndex >= RUN_IMAGE_MAX || charAniIndex <= 0) charAniDir *= -1;
 		prevPosY = CHAR_POS_Y;
 		display.fillRect(CHAR_POS_X, prevPosY, CHAR_WIDTH, CHAR_HEIGHT, BLACK);
-		display.drawBitmap(CHAR_POS_X, prevPosY, (const unsigned char*)pgm_read_word(&(char_anim[charAniIndex])), CHAR_WIDTH, CHAR_HEIGHT, WHITE);
+		display.drawBitmap(CHAR_POS_X, prevPosY, char_anim[charAniIndex], CHAR_WIDTH, CHAR_HEIGHT, WHITE);
 	} else if(charStatus == CHAR_JUMP) {
 		display.fillRect(prevPosX, prevPosY, CHAR_WIDTH, CHAR_HEIGHT, BLACK);	// clear previous drawing
 		prevPosY = CHAR_POS_Y-charJumpIndex;
-		display.drawBitmap(prevPosX, prevPosY, (const unsigned char*)pgm_read_word(&(char_anim[JUMP_IMAGE_INDEX])), CHAR_WIDTH, CHAR_HEIGHT, WHITE);
+		display.drawBitmap(prevPosX, prevPosY, jump, CHAR_WIDTH, CHAR_HEIGHT, WHITE);
 	} else if(charStatus == CHAR_FIRE) {
 		prevPosY = CHAR_POS_Y;
 		display.fillRect(CHAR_POS_X, prevPosY, CHAR_WIDTH, CHAR_HEIGHT, BLACK);
-		display.drawBitmap(CHAR_POS_X, prevPosY, (const unsigned char*)pgm_read_word(&(char_anim[FIRE_IMAGE_INDEX])), CHAR_WIDTH, CHAR_HEIGHT, WHITE);
+		display.drawBitmap(CHAR_POS_X, prevPosY, gun_shot, CHAR_WIDTH, CHAR_HEIGHT, WHITE);
 		charStatus = CHAR_RUN;
 	}
 	
@@ -525,7 +525,7 @@ void draw() {
 			if(enemyX[i] == -1) {
 				// Enemy dead image
 				display.fillRect(prevEnemyPosX[i], ENEMY_POS_Y, ENEMY_WIDTH, ENEMY_HEIGHT, BLACK);	// clear previous drawing
-				display.drawBitmap(prevEnemyPosX[i], ENEMY_POS_Y, (const unsigned char*)pgm_read_word(&(enemy_anim[ENEMY_DIE_IMAGE_INDEX])), ENEMY_WIDTH, ENEMY_HEIGHT, WHITE);
+				display.drawBitmap(prevEnemyPosX[i], ENEMY_POS_Y, enemy_anim[ENEMY_DIE_IMAGE_INDEX], ENEMY_WIDTH, ENEMY_HEIGHT, WHITE);
 				enemyX[i] = -2;
 			}
 			else if(enemyX[i] == -2) {
@@ -537,7 +537,7 @@ void draw() {
 			else if(enemyX[i] > 0) {
 				// Enemy running image
 				display.fillRect(prevEnemyPosX[i], ENEMY_POS_Y, ENEMY_WIDTH, ENEMY_HEIGHT, BLACK);	// clear previous drawing
-				display.drawBitmap(enemyX[i], ENEMY_POS_Y, (const unsigned char*)pgm_read_word(&(enemy_anim[ENEMY_RUN_IMAGE_INDEX])), ENEMY_WIDTH, ENEMY_HEIGHT, WHITE);
+				display.drawBitmap(enemyX[i], ENEMY_POS_Y, enemy_anim[ENEMY_RUN_IMAGE_INDEX], ENEMY_WIDTH, ENEMY_HEIGHT, WHITE);
 				prevEnemyPosX[i] = enemyX[i];
 			}
 		}
@@ -561,7 +561,7 @@ void draw() {
 		// Start game end drawing
 		for(int i=prevPosY; i<=CHAR_POS_Y; i++) {
 			display.fillRect(CHAR_POS_X, i, CHAR_WIDTH, CHAR_HEIGHT, BLACK);
-			display.drawBitmap(CHAR_POS_X, i, (const unsigned char*)pgm_read_word(&(char_anim[DIE_IMAGE_INDEX])), CHAR_WIDTH, CHAR_HEIGHT, WHITE);
+			display.drawBitmap(CHAR_POS_X, i, die, CHAR_WIDTH, CHAR_HEIGHT, WHITE);
 			display.display();
 		}
 		delay(400);
